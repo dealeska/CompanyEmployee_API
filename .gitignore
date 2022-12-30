@@ -9,7 +9,7 @@
 *.user
 *.userosscache
 *.sln.docstates
-/internal_logs/*.txt
+InnoGotchi_Server/internal_logs/*
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
