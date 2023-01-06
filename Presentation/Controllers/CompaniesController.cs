@@ -19,7 +19,6 @@ namespace Presentation.Controllers
         [HttpGet]
         public IActionResult GetCompanies()
         {
-            throw new Exception("EXCEPTION");
             var companies = _service.CompanyService.GetAllCompanies(trackChanges: false);
             return Ok(companies);
         }
