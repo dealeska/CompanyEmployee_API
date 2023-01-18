@@ -1,9 +1,4 @@
 ﻿using Shared.DataTransferObjects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Service.Contracts
 {
@@ -14,5 +9,7 @@ namespace Service.Contracts
         CompanyDto CreateCompany(CompanyForCreationDto company);
         IEnumerable<CompanyDto> GetByIds(IEnumerable<Guid> ids, bool trackChanges);
         (IEnumerable<CompanyDto> companies, string ids) CreateCompanyCollection(IEnumerable<CompanyForCreationDto> companyCollection);
+        void DeleteCompany(Guid companyId, bool trackChanges);
+        void UpdateCompany(Guid companyId, CompanyForUpdateDto company, bool trackChanges);
     }
 }

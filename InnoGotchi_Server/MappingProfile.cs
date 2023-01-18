@@ -15,6 +15,8 @@ namespace InnoGotchi_Server
             CreateMap<Employee, EmployeeDto>();
             CreateMap<CompanyForCreationDto, Company>();
             CreateMap<EmployeeForCreationDto, Employee>();
+            CreateMap<EmployeeForUpdateDto, Employee>();
+            CreateMap<CompanyForUpdateDto, Company>();
         }
     }
 }

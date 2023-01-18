@@ -4,11 +4,6 @@ using Entities.Exceptions;
 using Entities.Models;
 using Service.Contracts;
 using Shared.DataTransferObjects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Service
 {
@@ -75,6 +70,26 @@ namespace Service
             var companyCollectionToReturn = _mapper.Map<IEnumerable<CompanyDto>>(companyEntities);
             var ids = string.Join(",", companyCollectionToReturn.Select(c => c.Id));
             return (companies: companyCollectionToReturn, ids: ids);
+        }
+
+        public void DeleteCompany(Guid companyId, bool trackChanges)
+        {
+            var company = _repository.Company.GetCompany(companyId, trackChanges);
+            if (company is null)
+                throw new CompanyNotFoundException(companyId);
+
+            _repository.Company.DeleteCompany(company);
+            _repository.Save();
+        }
+
+        public void UpdateCompany(Guid companyId, CompanyForUpdateDto company, bool trackChanges)
+        {
+            var companyEntity = _repository.Company.GetCompany(companyId, trackChanges);
+            if (company is null)
+                throw new CompanyNotFoundException(companyId);
+
+            _mapper.Map(company, companyEntity);
+            _repository.Save();
         }
     }
 }
