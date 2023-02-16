@@ -1,2 +1,2 @@
 # InnoGotchi_API
-Backend for InnoGotchi game - .NET Tech task 
+Learning backend for CompanyEmployee by read a book ASP.NET Core WebAPI.
