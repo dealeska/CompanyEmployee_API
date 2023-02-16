@@ -9,6 +9,7 @@
 *.user
 *.userosscache
 *.sln.docstates
+InnoGotchi_Server/internal_logs/*
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -92,6 +93,7 @@ StyleCopReport.xml
 *.pidb
 *.svclog
 *.scc
+
 
 # Chutzpah Test files
 _Chutzpah*
