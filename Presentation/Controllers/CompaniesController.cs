@@ -30,13 +30,13 @@ namespace Presentation.Controllers
         [HttpPost]
         [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> CreateCompanyAsync([FromBody] CompanyForCreationDto company)
-        {          
+        {
             var createdCompany = await _service.CompanyService.CreateCompanyAsync(company);
             return CreatedAtRoute("CompanyById", new { id = createdCompany.Id }, createdCompany);
         }
 
         [HttpGet("collection/({ids})", Name = "CompanyCollection")]
-        public async Task<IActionResult> GetCompanyCollectionAsync([ModelBinder(BinderType = typeof(ArrayModelBinder))]IEnumerable<Guid> ids)
+        public async Task<IActionResult> GetCompanyCollectionAsync([ModelBinder(BinderType = typeof(ArrayModelBinder))] IEnumerable<Guid> ids)
         {
             var companies = await _service.CompanyService.GetByIdsAsync(ids, trackChanges: false);
             return Ok(companies);
@@ -45,7 +45,7 @@ namespace Presentation.Controllers
         [HttpPost("collection")]
         public async Task<IActionResult> CreateCompanyCollectionAsync([FromBody] IEnumerable<CompanyForCreationDto> companyCollection)
         {
-            var result =  await _service.CompanyService.CreateCompanyCollectionAsync(companyCollection);
+            var result = await _service.CompanyService.CreateCompanyCollectionAsync(companyCollection);
             return CreatedAtRoute("CompanyCollection", new { result.ids }, result.companies);
         }
 
@@ -59,9 +59,16 @@ namespace Presentation.Controllers
         [HttpPut("{id:guid}")]
         [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> UpdateCompanyAsync(Guid id, [FromBody] CompanyForUpdateDto company)
-        {      
+        {
             await _service.CompanyService.UpdateCompanyAsync(id, company, trackChanges: true);
             return NoContent();
+        }
+
+        [HttpOptions]
+        public IActionResult GetCompaniesOptions()
+        {
+            Response.Headers.Add("Allow", "GET, OPTIONS, POST");
+            return Ok();
         }
     }
 }
