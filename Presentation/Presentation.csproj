@@ -9,6 +9,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5"/>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.13"/>
     <PackageReference Include="microsoft.aspnetcore.mvc.versioning" Version="5.0.0"/>
+    <PackageReference Include="marvin.cache.headers" Version="7.0.0-beta"/>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Service.Contracts\Service.Contracts.csproj"/>
