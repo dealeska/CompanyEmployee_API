@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Repository;
 
@@ -11,9 +12,11 @@ using Repository;
 namespace InnoGotchiServer.Migrations
 {
     [DbContext(typeof(RepositoryContext))]
-    partial class RepositoryContextModelSnapshot : ModelSnapshot
+    [Migration("20230306102436_AddedRolesToDb")]
+    partial class AddedRolesToDb
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -152,6 +155,10 @@ namespace InnoGotchiServer.Migrations
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<string>("NickName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
@@ -221,15 +228,15 @@ namespace InnoGotchiServer.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "54b58fc3-09cc-4bb4-8e9f-916b30b5e2cc",
-                            ConcurrencyStamp = "5d5838f6-98ea-4ae6-b92e-d45bb1f550dc",
+                            Id = "06646989-3d75-428c-aeb6-d4b981707278",
+                            ConcurrencyStamp = "ea14e0f5-9247-4c32-be71-ad3a7ecf3ee3",
                             Name = "Manager",
                             NormalizedName = "MANAGER"
                         },
                         new
                         {
-                            Id = "7eee4dd8-3bf7-4113-b732-9a20086ba547",
-                            ConcurrencyStamp = "c13c48cf-1c8f-49a1-9e5f-141cceccc7df",
+                            Id = "e695453d-1a6f-44fb-a203-dcfa6117a197",
+                            ConcurrencyStamp = "937040e2-e6f9-484a-a69e-69717139eb11",
                             Name = "Administrator",
                             NormalizedName = "ADMINISTRATOR"
                         });

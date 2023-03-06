@@ -6,7 +6,7 @@ namespace InnoGotchi_Server
 {
     public class MappingProfile : Profile
     {
-        public MappingProfile() 
+        public MappingProfile()
         {
             CreateMap<Company, CompanyDto>()
                 .ForMember(c => c.FullAddress,
@@ -17,6 +17,7 @@ namespace InnoGotchi_Server
             CreateMap<EmployeeForCreationDto, Employee>();
             CreateMap<EmployeeForUpdateDto, Employee>().ReverseMap();
             CreateMap<CompanyForUpdateDto, Company>();
+            CreateMap<UserForRegistrationDto, User>();
         }
     }
 }
