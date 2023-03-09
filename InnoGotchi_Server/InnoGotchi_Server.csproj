@@ -11,6 +11,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="aspnetcoreratelimit" Version="5.0.0"/>
+    <PackageReference Include="microsoft.aspnetcore.authentication.jwtbearer" Version="6.0.14"/>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LoggerService\LoggerService.csproj"/>
