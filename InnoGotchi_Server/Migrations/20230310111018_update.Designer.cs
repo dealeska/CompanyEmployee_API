@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Repository;
 
@@ -11,9 +12,11 @@ using Repository;
 namespace InnoGotchiServer.Migrations
 {
     [DbContext(typeof(RepositoryContext))]
-    partial class RepositoryContextModelSnapshot : ModelSnapshot
+    [Migration("20230310111018_update")]
+    partial class update
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -44,7 +47,7 @@ namespace InnoGotchiServer.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Companies", (string)null);
+                    b.ToTable("Companies");
 
                     b.HasData(
                         new
@@ -90,7 +93,7 @@ namespace InnoGotchiServer.Migrations
 
                     b.HasIndex("CompanyId");
 
-                    b.ToTable("Employees", (string)null);
+                    b.ToTable("Employees");
 
                     b.HasData(
                         new
@@ -169,12 +172,6 @@ namespace InnoGotchiServer.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
 
-                    b.Property<string>("RefreshToken")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("RefreshTokenExpiryTime")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
@@ -227,15 +224,15 @@ namespace InnoGotchiServer.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "bc946b8b-c47f-4a79-9507-d3170617b2a9",
-                            ConcurrencyStamp = "66d43101-5ded-46b3-9d7f-c2947a5fad47",
+                            Id = "e60e0aca-70a0-49cf-83ef-01144e5a0b2d",
+                            ConcurrencyStamp = "9a0e2da3-f11a-4ae6-ae38-c49cc542226b",
                             Name = "Manager",
                             NormalizedName = "MANAGER"
                         },
                         new
                         {
-                            Id = "1a281f50-2703-41ac-a08a-c7945dcfa539",
-                            ConcurrencyStamp = "697aa8a2-23a8-46a1-9120-8429943a61e4",
+                            Id = "f600c839-e037-43e6-b7dd-49d656d359bf",
+                            ConcurrencyStamp = "0938667e-8b7b-4801-a821-5f404a9b166c",
                             Name = "Administrator",
                             NormalizedName = "ADMINISTRATOR"
                         });
