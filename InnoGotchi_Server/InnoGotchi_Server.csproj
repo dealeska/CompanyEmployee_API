@@ -12,6 +12,7 @@
     </PackageReference>
     <PackageReference Include="aspnetcoreratelimit" Version="5.0.0"/>
     <PackageReference Include="microsoft.aspnetcore.authentication.jwtbearer" Version="6.0.14"/>
+    <PackageReference Include="swashbuckle.aspnetcore" Version="6.5.0"/>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LoggerService\LoggerService.csproj"/>
