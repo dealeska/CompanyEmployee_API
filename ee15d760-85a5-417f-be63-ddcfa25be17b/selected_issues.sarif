@@ -1,0 +1,55 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://docs.oasis-open.org/sarif/sarif/v2.1.0/errata01/os/schemas/sarif-schema-2.1.0.json",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "fraim",
+          "version": "1.0.0"
+        }
+      },
+      "results": [
+        {
+          "level": "error",
+          "message": {
+            "text": "The PUT /api/companies/{id} endpoint lacks authentication and authorization, allowing unauthenticated users to modify company data."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "endLine": 75,
+                  "snippet": {
+                    "text": "        [HttpPut(\"{id:guid}\")]\n        [ServiceFilter(typeof(ValidationFilterAttribute))]\n        public async Task<IActionResult> UpdateCompanyAsync(Guid id, [FromBody] CompanyForUpdateDto company)\n        {\n            await _service.CompanyService.UpdateCompanyAsync(id, company, trackChanges: true);"
+                  },
+                  "startLine": 71
+                },
+                "artifactLocation": {
+                  "uri": "Presentation/Controllers/CompaniesController.cs"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "id": 14,
+            "type": "Broken Access Control",
+            "confidence": 10,
+            "fixability": 8,
+            "explanation": {
+              "text": "The `UpdateCompanyAsync` method (PUT /api/companies/{id}) in `Presentation/Controllers/CompaniesController.cs` is missing an `[Authorize]` attribute at both the method and controller level. This allows any unauthenticated user to send a PUT request to this endpoint and modify company data, provided they know a valid company GUID. The `id` parameter is directly taken from the URL path, and the `company` object is deserialized from the request body, both fully controlled by an external attacker. Furthermore, the `GetCompany` endpoint (GET /api/companies/{id}) also lacks authorization, allowing an attacker to enumerate valid company GUIDs, which can then be used to exploit this update vulnerability. This is a critical access control vulnerability leading to unauthorized data modification. While a `ValidationFilterAttribute` is present, it only validates input format and constraints, not authorization."
+            },
+            "exploitable": true,
+            "shortSummary": "Missing authorization on company update",
+            "attackVectors": [
+              "HTTP PUT request to /api/companies/{id}"
+            ],
+            "attackComplexity": "Low. An attacker only needs to send a crafted HTTP PUT request to the endpoint. The necessary company GUIDs can be easily obtained by querying the unauthorized `GET /api/companies/{id}` endpoint.",
+            "impactAssessment": "High. An attacker can modify or corrupt sensitive company data, leading to data integrity issues, reputational damage, and potential financial losses. If critical data is modified, it could also lead to service disruption (availability).",
+            "remediationRecommendations": "1. Add the `[Authorize]` attribute to the `UpdateCompanyAsync` method or the `CompaniesController` class to enforce authentication. \n2. Implement fine-grained authorization logic within the `UpdateCompanyAsync` method to ensure that the authenticated user is authorized to modify the *specific* company identified by the `id` parameter. This will prevent Insecure Direct Object Reference (IDOR) vulnerabilities. \n3. Review and add `[Authorize]` attributes to other sensitive endpoints, such as `GetCompany` (GET /api/companies/{id}), to prevent unauthorized data enumeration."
+          }
+        }
+      ]
+    }
+  ]
+}
