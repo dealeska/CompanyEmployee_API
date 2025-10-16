@@ -29,6 +29,7 @@ namespace Presentation.Controllers
         }
 
         [HttpGet("{id:guid}", Name = "GetEmployeeForCompany")]
+        [Authorize]
         public async Task<IActionResult> GetEmployeeForCompanyAsync(Guid companyId, Guid id)
         {
             var employees = await _service.EmployeeService.GetEmployeeAsync(companyId, id, trackChanges: false);
