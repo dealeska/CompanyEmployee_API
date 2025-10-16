@@ -1,0 +1,149 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://docs.oasis-open.org/sarif/sarif/v2.1.0/errata01/os/schemas/sarif-schema-2.1.0.json",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "fraim",
+          "version": "1.0.0"
+        }
+      },
+      "results": [
+        {
+          "message": {
+            "text": "The endpoint '/api/companies/collection/({ids})' implemented by 'GetCompanyCollectionAsync' lacks any authentication or authorization attributes. This allows unauthenticated users to retrieve details for any company by providing their GUIDs in the path parameter. This bypasses all security checks, enabling unauthorized access to potentially sensitive company information."
+          },
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Presentation/Controllers/CompaniesController.cs"
+                },
+                "region": {
+                  "startLine": 50,
+                  "endLine": 54,
+                  "snippet": {
+                    "text": "        [HttpGet(\"collection/({ids})\", Name = \"CompanyCollection\"]\n        public async Task<IActionResult> GetCompanyCollectionAsync([ModelBinder(BinderType = typeof(ArrayModelBinder))] IEnumerable<Guid> ids)\n        {\n            var companies = await _service.CompanyService.GetByIdsAsync(ids, trackChanges: false);\n            return Ok(companies);"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "type": "Broken Authentication",
+            "confidence": 10,
+            "exploitable": true,
+            "explanation": {
+              "text": "The `GetCompanyCollectionAsync` method in `CompaniesController.cs` is exposed via an HTTP GET endpoint `/api/companies/collection/({ids})`. The `ids` parameter is directly bound from the URL path. Crucially, this method lacks an `[Authorize]` attribute, making it publicly accessible without any authentication. An attacker can send a GET request to this endpoint with a list of company GUIDs in the path and retrieve company data without needing to log in or prove any authorization. This directly exposes potentially sensitive company information to unauthenticated users."
+            },
+            "id": 16,
+            "shortSummary": "Unauthenticated access to company collection",
+            "impactAssessment": "High Confidentiality Impact: Unauthorized users can retrieve sensitive company details. Low Integrity and Availability Impact: The vulnerability is for data retrieval, not modification, and does not directly impact system availability.",
+            "attackComplexity": "Low. An attacker only needs to craft a simple HTTP GET request with known or guessed company GUIDs.",
+            "attackVectors": [
+              "Direct HTTP GET request to /api/companies/collection/({ids})"
+            ],
+            "remediationRecommendations": "1. Add the `[Authorize]` attribute to the `GetCompanyCollectionAsync` method to enforce authentication. 2. Implement fine-grained authorization policies if different levels of access are required (e.g., only users associated with a company can view its details). 3. Consider adding input validation to limit the number of GUIDs that can be requested in a single call to prevent potential resource exhaustion.",
+            "fixability": 10,
+            "remediationApplied": true,
+            "remediationSummary": "Updated file: Presentation/Controllers/CompaniesCo"
+          },
+          "codeFlows": [
+            {
+              "message": {
+                "text": "Execution flow leading to the vulnerability."
+              },
+              "threadFlows": [
+                {
+                  "message": {
+                    "text": "Unauthenticated request to the endpoint."
+                  },
+                  "locations": [
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "Presentation/Controllers/CompaniesController.cs"
+                          },
+                          "region": {
+                            "startLine": 50,
+                            "endLine": 50,
+                            "snippet": {
+                              "text": "        [HttpGet(\"collection/({ids})\", Name = \"CompanyCollection\"]"
+                            }
+                          }
+                        }
+                      },
+                      "kinds": [
+                        "call"
+                      ]
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "Presentation/Controllers/CompaniesController.cs"
+                          },
+                          "region": {
+                            "startLine": 51,
+                            "endLine": 51,
+                            "snippet": {
+                              "text": "        public async Task<IActionResult> GetCompanyCollectionAsync([ModelBinder(BinderType = typeof(ArrayModelBinder))] IEnumerable<Guid> ids)"
+                            }
+                          }
+                        }
+                      },
+                      "kinds": [
+                        "function"
+                      ]
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "Presentation/Controllers/CompaniesController.cs"
+                          },
+                          "region": {
+                            "startLine": 53,
+                            "endLine": 53,
+                            "snippet": {
+                              "text": "            var companies = await _service.CompanyService.GetByIdsAsync(ids, trackChanges: false);"
+                            }
+                          }
+                        }
+                      },
+                      "kinds": [
+                        "call"
+                      ]
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "Presentation/Controllers/CompaniesController.cs"
+                          },
+                          "region": {
+                            "startLine": 54,
+                            "endLine": 54,
+                            "snippet": {
+                              "text": "            return Ok(companies);"
+                            }
+                          }
+                        }
+                      },
+                      "kinds": [
+                        "return"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
