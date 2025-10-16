@@ -1,0 +1,57 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://docs.oasis-open.org/sarif/sarif/v2.1.0/errata01/os/schemas/sarif-schema-2.1.0.json",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "fraim",
+          "version": "1.0.0"
+        }
+      },
+      "results": [
+        {
+          "message": {
+            "text": "The `GetCompany` endpoint at `/api/companies/{id}` directly uses the `id` from the path parameter without performing authorization checks, leading to an Insecure Direct Object Reference (IDOR) vulnerability."
+          },
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Presentation/Controllers/CompaniesController.cs"
+                },
+                "region": {
+                  "startLine": 38,
+                  "endLine": 38,
+                  "snippet": {
+                    "text": "            var company = await _service.CompanyService.GetCompanyAsync(id, trackChanges: false);"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "type": "Broken Access Control",
+            "confidence": 10,
+            "exploitable": true,
+            "explanation": {
+              "text": "The `GetCompany` method retrieves company information based solely on the `id` provided in the URL. There are no checks to ensure that the requesting user (even if authentication were enforced) is authorized to view the specific company associated with that `id`. This allows an attacker to enumerate or access company details they should not have access to by manipulating the `id` parameter. Combined with the lack of authentication, this allows any anonymous user to access any company's details."
+            },
+            "id": 13,
+            "shortSummary": "IDOR in GetCompany endpoint",
+            "impactAssessment": "Confidentiality: High. An attacker can access sensitive company information. Integrity: Low. Availability: Low.",
+            "attackComplexity": "Low. An attacker only needs to change the 'id' parameter in the URL.",
+            "attackVectors": [
+              "HTTP GET request to /api/companies/{id}"
+            ],
+            "remediationRecommendations": "Implement authorization checks within the `GetCompany` method to ensure that the authenticated user is authorized to view the company associated with the provided `id`. This could involve checking if the company belongs to the user's organization or if the user has specific permissions. Additionally, ensure that authentication is properly enforced for this endpoint.",
+            "fixability": 8,
+            "remediationApplied": true,
+            "remediationSummary": "Updated file: Presentation/Controllers/CompaniesCo"
+          }
+        }
+      ]
+    }
+  ]
+}
