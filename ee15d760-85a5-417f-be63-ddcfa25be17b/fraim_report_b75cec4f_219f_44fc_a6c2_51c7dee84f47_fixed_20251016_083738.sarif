@@ -1,0 +1,57 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://docs.oasis-open.org/sarif/sarif/v2.1.0/errata01/os/schemas/sarif-schema-2.1.0.json",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "fraim",
+          "version": "1.0.0"
+        }
+      },
+      "results": [
+        {
+          "message": {
+            "text": "The DELETE endpoint '/api/companies/{companyId}/employees/{id}' is missing explicit authorization checks, allowing unauthenticated users to delete employee records. This leads to Broken Authentication and potential Broken Access Control/IDOR if not properly secured at a higher level."
+          },
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Presentation/Controllers/EmployeesController.cs"
+                },
+                "region": {
+                  "startLine": 52,
+                  "endLine": 56,
+                  "snippet": {
+                    "text": "        [HttpDelete(\"{id:guid}\")]\n        public async Task<IActionResult> DeleteEmployeeForCompanyAsync(Guid companyId, Guid id)\n        {\n            await _service.EmployeeService.DeleteEmployeeForCompanyAsync(companyId, id, trackChanges: false);\n            return NoContent();\n        }"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "type": "Broken Authentication",
+            "confidence": 9,
+            "exploitable": true,
+            "explanation": {
+              "text": "The `DeleteEmployeeForCompanyAsync` method in `EmployeesController.cs` handles DELETE requests to `/api/companies/{companyId}/employees/{id}`. The `companyId` and `id` parameters are directly bound from the URL path. Neither the method nor the `EmployeesController` class has an `[Authorize]` attribute, indicating a lack of explicit authentication enforcement at this level. This means that an unauthenticated attacker can send DELETE requests to this endpoint, specifying arbitrary `companyId` and `id` values in the URL, to delete employee records. This constitutes a Broken Authentication vulnerability. Furthermore, even if authentication were enforced globally, the absence of granular authorization checks (e.g., verifying if the authenticated user has permissions for the specified company or employee) could lead to Broken Access Control and Insecure Direct Object Reference (IDOR), allowing authenticated users to delete records they should not have access to."
+            },
+            "id": 3,
+            "shortSummary": "Missing auth on DELETE /api/companies/{id}/employees",
+            "impactAssessment": "Confidentiality: LOW (no data exfiltration directly, but data loss can be inferred). Integrity: HIGH (attacker can delete arbitrary employee records, leading to data loss and corruption of business data). Availability: HIGH (mass deletion of records can lead to denial of service by data destruction).",
+            "attackComplexity": "LOW. The vulnerability is directly exposed via an HTTP DELETE endpoint. An attacker only needs to send a crafted HTTP request with valid GUIDs for `companyId` and `id` to exploit this. No complex authentication bypass or session hijacking is required if no global authentication is in place.",
+            "attackVectors": [
+              "HTTP DELETE request to /api/companies/{companyId}/employees/{id}"
+            ],
+            "remediationRecommendations": "1. **Implement Authentication**: Add the `[Authorize]` attribute to the `EmployeesController` class or the `DeleteEmployeeForCompanyAsync` method to ensure only authenticated users can access this endpoint.\n2. **Implement Authorization**: After authentication, implement granular authorization checks within the `DeleteEmployeeForCompanyAsync` method or the `EmployeeService` to verify that the authenticated user has the necessary permissions to delete an employee from the specified `companyId` and that the `id` belongs to an employee within that company and is accessible to the user. This prevents IDOR and Broken Access Control.\n3. **Input Validation**: While `Guid` types provide some format validation, ensure that the `companyId` and `id` correspond to existing, valid entities before performing the deletion. This is a good practice to prevent unnecessary database calls and provide clearer error messages.",
+            "fixability": 8,
+            "remediationApplied": true,
+            "remediationSummary": "Updated file: Presentation/Controllers/EmployeesCo"
+          }
+        }
+      ]
+    }
+  ]
+}
