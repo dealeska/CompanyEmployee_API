@@ -1,0 +1,55 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://docs.oasis-open.org/sarif/sarif/v2.1.0/errata01/os/schemas/sarif-schema-2.1.0.json",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "fraim",
+          "version": "1.0.0"
+        }
+      },
+      "results": [
+        {
+          "level": "error",
+          "message": {
+            "text": "The PUT endpoint `/api/companies/{companyId}/employees/{id}` implemented by `UpdateEmployeeForCompanyAsync` lacks explicit authorization checks. The API specification also indicates no security requirements. This allows unauthenticated or unauthorized users to potentially modify employee data for any company and employee by manipulating the `companyId` and `id` path parameters."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "endLine": 63,
+                  "snippet": {
+                    "text": "        [HttpPut(\"{id:guid}\")]\n        [ServiceFilter(typeof(ValidationFilterAttribute))]\n        public async Task<IActionResult> UpdateEmployeeForCompanyAsync(Guid companyId, Guid id, [FromBody] EmployeeForUpdateDto employee)\n        {\n            await _service.EmployeeService.UpdateEmployeeForCompanyAsync(companyId, id, employee, compTrackChanges: false, empTrackChanges: true);"
+                  },
+                  "startLine": 59
+                },
+                "artifactLocation": {
+                  "uri": "Presentation/Controllers/EmployeesController.cs"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "id": 8,
+            "type": "Broken Access Control",
+            "confidence": 9,
+            "fixability": 10,
+            "explanation": {
+              "text": "The `UpdateEmployeeForCompanyAsync` method, which handles PUT requests to update employee information, does not have any `[Authorize]` attributes applied at either the method or controller level. The API specification explicitly states 'None specified' for security requirements. This means the endpoint is likely accessible to unauthenticated users or, if authentication is globally enforced, it lacks specific authorization rules. An attacker could potentially update any employee's details by providing valid `companyId` and `id` GUIDs in the URL, leading to unauthorized data modification. There are no checks to ensure the requesting user is authorized to modify employees within the specified `companyId` or the specific `id`. The `companyId` and `id` parameters are directly bound from the URL path, and the `employee` object is bound from the request body, making all these inputs attacker-controlled via an HTTP PUT request."
+            },
+            "exploitable": true,
+            "shortSummary": "Missing authorization on employee update",
+            "attackVectors": [
+              "HTTP PUT Request"
+            ],
+            "attackComplexity": "LOW. An attacker only needs to send a crafted HTTP PUT request with valid `companyId` and `id` GUIDs and the desired employee data in the request body. No prior authentication or complex bypass techniques are required.",
+            "impactAssessment": "Confidentiality: HIGH (attacker can modify sensitive employee data). Integrity: HIGH (attacker can modify employee records). Availability: LOW (no direct impact on service availability, but data integrity compromise can lead to operational issues).",
+            "remediationRecommendations": "Implement robust authorization checks. Add an `[Authorize]` attribute to the `UpdateEmployeeForCompanyAsync` method or the `EmployeesController` class. This attribute should specify appropriate roles or policies to ensure that only authorized users can update employee data. Additionally, implement logic within the method to verify that the authenticated user has permission to modify employees within the specified `companyId` and for the specific `id`."
+          }
+        }
+      ]
+    }
+  ]
+}
