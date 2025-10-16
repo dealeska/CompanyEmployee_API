@@ -62,6 +62,7 @@ namespace Presentation.Controllers
         }
 
         [HttpDelete("{id:guid}")]
+        [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> DeleteCompanyasync(Guid id)
         {
             await _service.CompanyService.DeleteCompanyAsync(id, trackChanges: false);
