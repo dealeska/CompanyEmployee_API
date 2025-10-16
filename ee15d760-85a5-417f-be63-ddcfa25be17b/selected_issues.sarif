@@ -1,0 +1,55 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://docs.oasis-open.org/sarif/sarif/v2.1.0/errata01/os/schemas/sarif-schema-2.1.0.json",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "fraim",
+          "version": "1.0.0"
+        }
+      },
+      "results": [
+        {
+          "level": "error",
+          "message": {
+            "text": "The POST /api/companies/collection endpoint lacks authorization, allowing unauthenticated users to create multiple company records."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "endLine": 61,
+                  "snippet": {
+                    "text": "        [HttpPost(\"collection\"]\n        public async Task<IActionResult> CreateCompanyCollectionAsync([FromBody] IEnumerable<CompanyForCreationDto> companyCollection)\n        {\n            var result = await _service.CompanyService.CreateCompanyCollectionAsync(companyCollection);\n            return CreatedAtRoute(\"CompanyCollection\", new { result.ids }, result.companies);\n"
+                  },
+                  "startLine": 57
+                },
+                "artifactLocation": {
+                  "uri": "Presentation/Controllers/CompaniesController.cs"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "id": 15,
+            "type": "Broken Access Control",
+            "confidence": 9,
+            "fixability": 10,
+            "explanation": {
+              "text": "The `CreateCompanyCollectionAsync` method, exposed as a POST endpoint at `/api/companies/collection`, does not have an `[Authorize]` attribute. This means any unauthenticated user can invoke this endpoint and supply a collection of `CompanyForCreationDto` objects in the request body. The `companyCollection` parameter is directly bound from the HTTP request body via `[FromBody]`. This input is then passed to `_service.CompanyService.CreateCompanyCollectionAsync`. There are no explicit authorization checks or validation filters (like `ValidationFilterAttribute` seen on other methods in the same controller) applied to this endpoint. This allows an attacker to create an arbitrary number of company records, leading to potential data pollution, resource exhaustion, or denial of service by flooding the database with junk data."
+            },
+            "exploitable": true,
+            "shortSummary": "Unauth. POST /api/companies/collection",
+            "attackVectors": [
+              "HTTP POST request to /api/companies/collection with a malicious JSON payload in the request body."
+            ],
+            "attackComplexity": "Low. An attacker only needs to send a simple HTTP POST request with a crafted JSON body to the exposed endpoint. No authentication or complex bypasses are required.",
+            "impactAssessment": "Confidentiality: Low (no direct data exposure, but data pollution can obscure legitimate data). Integrity: High (unauthorized creation of data directly impacts data integrity). Availability: High (resource exhaustion, database flooding, and potential denial of service).",
+            "remediationRecommendations": "Add the `[Authorize]` attribute to the `CreateCompanyCollectionAsync` method to restrict access to authenticated and authorized users. Additionally, consider adding the `[ServiceFilter(typeof(ValidationFilterAttribute))]` to ensure proper model validation for the incoming `companyCollection` data. Implement robust input validation and rate limiting to prevent abuse."
+          }
+        }
+      ]
+    }
+  ]
+}
