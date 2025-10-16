@@ -1,0 +1,57 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://docs.oasis-open.org/sarif/sarif/v2.1.0/errata01/os/schemas/sarif-schema-2.1.0.json",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "fraim",
+          "version": "1.0.0"
+        }
+      },
+      "results": [
+        {
+          "message": {
+            "text": "The POST /api/companies/{companyId}/employees endpoint lacks authentication and authorization, allowing unauthenticated users to create employee records for any company."
+          },
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Presentation/Controllers/EmployeesController.cs"
+                },
+                "region": {
+                  "startLine": 38,
+                  "endLine": 47,
+                  "snippet": {
+                    "text": "        [HttpPost]\n        [ServiceFilter(typeof(ValidationFilterAttribute))]\n        public async Task<IActionResult> CreateEmployeeForCompanyAsync(Guid companyId, [FromBody] EmployeeForCreationDto employee)\n        {\n\n            var employeeToReturn = await _service.EmployeeService.CreateEmployeeForCompanyAsync(companyId, employee, trackChanges: false);\n            return CreatedAtRoute(\"GetEmployeeForCompany\", new\n            {\n                companyId,\n                id = employeeToReturn.Id\n            },\n                employeeToReturn);\n        }"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "type": "Broken Authentication",
+            "confidence": 10,
+            "exploitable": true,
+            "explanation": {
+              "text": "The `CreateEmployeeForCompanyAsync` method in `EmployeesController.cs` is exposed via an HTTP POST request to `/api/companies/{companyId}/employees`. The `companyId` parameter is taken directly from the URL route, and the `employee` parameter is deserialized from the HTTP request body. Neither the `EmployeesController` class nor the `CreateEmployeeForCompanyAsync` method has any `[Authorize]` or similar authentication/authorization attributes. This means an unauthenticated attacker can send a POST request to this endpoint, specify any `companyId`, and provide `EmployeeForCreationDto` data in the request body to create new employee records for any company. This constitutes a severe Broken Authentication and Broken Access Control vulnerability, as well as an Insecure Direct Object Reference (IDOR) due to the lack of checks on `companyId`."
+            },
+            "id": 8,
+            "shortSummary": "Unauthenticated POST to create employees",
+            "impactAssessment": "Confidentiality: Low (no direct data leakage, but can create fake data). Integrity: High (attacker can create arbitrary employee records for any company, leading to data pollution and potential disruption of business processes). Availability: Low (not directly impacting service availability, but could lead to resource exhaustion if many fake records are created).",
+            "attackComplexity": "Low. An attacker only needs to send a crafted HTTP POST request to the endpoint. No prior authentication or complex bypass techniques are required.",
+            "attackVectors": [
+              "HTTP POST request to /api/companies/{companyId}/employees"
+            ],
+            "remediationRecommendations": "Implement proper authentication and authorization. Add an `[Authorize]` attribute to the `EmployeesController` class or, at minimum, to the `CreateEmployeeForCompanyAsync` method. Additionally, implement authorization logic within the `CreateEmployeeForCompanyAsync` method to ensure that the authenticated user has the necessary permissions to create employees for the specified `companyId`. This typically involves checking the user's roles or ownership of the company.",
+            "fixability": 8,
+            "remediationApplied": true,
+            "remediationSummary": "Updated file: Presentation/Controllers/EmployeesCo"
+          }
+        }
+      ]
+    }
+  ]
+}
