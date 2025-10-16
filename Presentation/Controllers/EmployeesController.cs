@@ -36,6 +36,7 @@ namespace Presentation.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> CreateEmployeeForCompanyAsync(Guid companyId, [FromBody] EmployeeForCreationDto employee)
         {
