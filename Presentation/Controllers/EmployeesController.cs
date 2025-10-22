@@ -15,8 +15,28 @@ namespace Presentation.Controllers
         private readonly IServiceManager _service;
         public EmployeesController(IServiceManager service)
         {
-            _service = service;
-        }
+            // Implement robust authorization checks.
+            // These checks must verify that the authenticated user is authorized to access the 'companyId'
+            // and modify the 'id' (employee) specified in the URL.
+            // This typically involves comparing the 'companyId' and 'id' against the user's assigned permissions,
+            // roles, or ownership claims.
+
+            // First, retrieve the employee to ensure it exists and belongs to the specified company.
+            // This also serves as a basic IDOR check to prevent modifying non-existent employees or employees
+            // that do not belong to the provided companyId.
+            var employeeEntity = await _service.EmployeeService.GetEmployeeAsync(companyId, id, trackChanges: false);
+            if (employeeEntity == null)
+            {
+                return NotFound(); // Employee not found or does not belong to this company.
+            }
+
+            // TODO: Implement robust user-specific authorization here.
+            // Verify that the authenticated user has permission to modify this specific employee
+            // within this company (e.g., by checking user roles, claims, or ownership).
+            // If not authorized, return Unauthorized().
+
+            await _service.EmployeeService.UpdateEmployeeForCompanyAsync(companyId, id, employee, compTrackChanges: false, empTrackChanges: true);
+            return NoContent();
 
         [HttpGet]
         [HttpHead]
