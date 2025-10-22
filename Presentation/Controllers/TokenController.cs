@@ -18,6 +18,7 @@ namespace Presentation.Controllers
 
         [HttpPost("refresh")]
         [ServiceFilter(typeof(ValidationFilterAttribute))]
+        [AllowAnonymous]
         public async Task<IActionResult> Refresh([FromBody] TokenDto tokenDto)
         {
             var tokenDtoToReturn = await _service.AuthenticationService.RefreshToken(tokenDto);
