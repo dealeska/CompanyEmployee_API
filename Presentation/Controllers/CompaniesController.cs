@@ -48,6 +48,7 @@ namespace Presentation.Controllers
         }
 
         [HttpGet("collection/({ids})", Name = "CompanyCollection")]
+        [Authorize]
         public async Task<IActionResult> GetCompanyCollectionAsync([ModelBinder(BinderType = typeof(ArrayModelBinder))] IEnumerable<Guid> ids)
         {
             var companies = await _service.CompanyService.GetByIdsAsync(ids, trackChanges: false);
