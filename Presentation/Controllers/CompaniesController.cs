@@ -55,6 +55,7 @@ namespace Presentation.Controllers
         }
 
         [HttpPost("collection")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateCompanyCollectionAsync([FromBody] IEnumerable<CompanyForCreationDto> companyCollection)
         {
             var result = await _service.CompanyService.CreateCompanyCollectionAsync(companyCollection);
