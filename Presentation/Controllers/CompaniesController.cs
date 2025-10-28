@@ -69,9 +69,14 @@ namespace Presentation.Controllers
         }
 
         [HttpPut("{id:guid}")]
+        [Authorize]
         [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> UpdateCompanyAsync(Guid id, [FromBody] CompanyForUpdateDto company)
         {
+            // TODO: Implement robust authorization check here.
+            // Verify that the authenticated user is authorized to modify the specific company identified by 'id'.
+            // This typically involves comparing 'id' with the company ID associated with the current user's context
+            // (e.g., their organization, owned companies, or assigned roles).
             await _service.CompanyService.UpdateCompanyAsync(id, company, trackChanges: true);
             return NoContent();
         }
