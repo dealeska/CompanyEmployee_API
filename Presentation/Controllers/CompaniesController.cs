@@ -55,6 +55,8 @@ namespace Presentation.Controllers
         }
 
         [HttpPost("collection")]
+        [Authorize]
+        [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> CreateCompanyCollectionAsync([FromBody] IEnumerable<CompanyForCreationDto> companyCollection)
         {
             var result = await _service.CompanyService.CreateCompanyCollectionAsync(companyCollection);
