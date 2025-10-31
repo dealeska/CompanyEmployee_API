@@ -5,6 +5,7 @@ using Presentation.ActionFilters;
 using Presentation.ModelBinders;
 using Service.Contracts;
 using Shared.DataTransferObjects;
+using System.Security.Claims;
 
 namespace Presentation.Controllers
 {
@@ -70,8 +71,24 @@ namespace Presentation.Controllers
 
         [HttpPut("{id:guid}")]
         [ServiceFilter(typeof(ValidationFilterAttribute))]
+        [Authorize]
         public async Task<IActionResult> UpdateCompanyAsync(Guid id, [FromBody] CompanyForUpdateDto company)
         {
+            var companyEntity = await _service.CompanyService.GetCompanyAsync(id, trackChanges: false);
+
+            if (companyEntity == null)
+            {
+                return NotFound();
+            }
+
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            // Assuming CompanyDto has a UserId property for ownership
+            if (companyEntity.UserId != currentUserId)
+            {
+                return Forbid();
+            }
+
             await _service.CompanyService.UpdateCompanyAsync(id, company, trackChanges: true);
             return NoContent();
         }
