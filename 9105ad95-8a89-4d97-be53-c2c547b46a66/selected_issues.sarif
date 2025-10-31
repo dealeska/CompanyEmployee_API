@@ -1,0 +1,55 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://docs.oasis-open.org/sarif/sarif/v2.1.0/errata01/os/schemas/sarif-schema-2.1.0.json",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "fraim",
+          "version": "1.0.0"
+        }
+      },
+      "results": [
+        {
+          "level": "error",
+          "message": {
+            "text": "The POST /api/companies endpoint, which allows the creation of new company records, is missing an authorization attribute. This allows unauthenticated users to create company entries, leading to a Broken Access Control vulnerability."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "endLine": 42,
+                  "snippet": {
+                    "text": "public async Task<IActionResult> CreateCompanyAsync([FromBody] CompanyForCreationDto company)"
+                  },
+                  "startLine": 42
+                },
+                "artifactLocation": {
+                  "uri": "Presentation/Controllers/CompaniesController.cs"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "id": 1,
+            "type": "Broken Access Control",
+            "confidence": 10,
+            "fixability": 10,
+            "explanation": {
+              "text": "The `CreateCompanyAsync` method, corresponding to the POST /api/companies endpoint, is designed to create new company records. This is a sensitive operation that typically requires authentication and specific authorization (e.g., an administrator or a user with a 'company_creator' role). However, the method lacks an `[Authorize]` attribute. In contrast, other methods within the same controller, such as `GetCompanies`, explicitly use `[Authorize]`. This indicates that authorization is not globally enforced at the controller level, making the `CreateCompanyAsync` endpoint publicly accessible to unauthenticated users. An attacker could exploit this to create arbitrary company records, potentially leading to data pollution, resource exhaustion, or other malicious activities.\n\n**Input Tracing Analysis:**\n1.  **Vulnerable Function**: `CreateCompanyAsync` in `Presentation/Controllers/CompaniesController.cs` (line 42).\n2.  **Vulnerable Parameter**: `company` (type `CompanyForCreationDto`).\n3.  **Input Source**: The `CreateCompanyAsync` method is an HTTP POST endpoint (`[HttpPost]`) and the `company` parameter is directly bound from the HTTP request body using `[FromBody]`. This means the input is directly controlled by an external attacker via HTTP requests.\n4.  **Validation/Sanitization**: The method has a `[ServiceFilter(typeof(ValidationFilterAttribute))]` which likely performs model validation (e.g., checking required fields, data types). However, this filter does not perform authorization checks.\n5.  **Conclusion**: The input is directly attacker-controlled via HTTP POST requests, and there are no authorization checks in place to prevent unauthenticated access to this sensitive operation."
+            },
+            "exploitable": true,
+            "shortSummary": "Missing [Authorize] on POST /api/companies",
+            "attackVectors": [
+              "HTTP POST request to /api/companies"
+            ],
+            "attackComplexity": "Low. The vulnerability can be exploited with a simple HTTP POST request to the `/api/companies` endpoint without any authentication.",
+            "impactAssessment": "High. An attacker can create an unlimited number of company records, leading to data pollution, resource exhaustion, and potential denial of service. This compromises the integrity of the application's data and can impact its availability.",
+            "remediationRecommendations": "Add the `[Authorize]` attribute to the `CreateCompanyAsync` method to ensure that only authenticated and authorized users can create company records. If different authorization policies are required, consider using role-based authorization (e.g., `[Authorize(Roles = \"Administrator\")]`)."
+          }
+        }
+      ]
+    }
+  ]
+}

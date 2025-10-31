@@ -41,6 +41,7 @@ namespace Presentation.Controllers
 
         [HttpPost]
         [ServiceFilter(typeof(ValidationFilterAttribute))]
+        [Authorize]
         public async Task<IActionResult> CreateCompanyAsync([FromBody] CompanyForCreationDto company)
         {
             var createdCompany = await _service.CompanyService.CreateCompanyAsync(company);
