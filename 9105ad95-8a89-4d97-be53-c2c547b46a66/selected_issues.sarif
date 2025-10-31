@@ -1,0 +1,94 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://docs.oasis-open.org/sarif/sarif/v2.1.0/errata01/os/schemas/sarif-schema-2.1.0.json",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "fraim",
+          "version": "1.0.0"
+        }
+      },
+      "results": [
+        {
+          "level": "error",
+          "message": {
+            "text": "The API endpoint '/api/companies/{companyId}/employees' (POST method) is missing authentication and authorization controls."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "endLine": 38,
+                  "snippet": {
+                    "text": "        [HttpPost]\n        public async Task<IActionResult> CreateEmployeeForCompanyAsync(Guid companyId, [FromBody] EmployeeForCreationDto employee)"
+                  },
+                  "startLine": 37
+                },
+                "artifactLocation": {
+                  "uri": "Presentation/Controllers/EmployeesController.cs"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "id": 2,
+            "type": "Broken Authentication",
+            "confidence": 10,
+            "fixability": 10,
+            "explanation": {
+              "text": "The `CreateEmployeeForCompanyAsync` method in `EmployeesController.cs` is exposed as an HTTP POST endpoint at `/api/companies/{companyId}/employees`. Both the `companyId` (from the route) and the `employee` object (from the request body) are directly controlled by external HTTP input. There are no `[Authorize]` attributes on the method or the controller, meaning any unauthenticated user can access this endpoint. This allows an attacker to create new employee records for any company by sending a crafted POST request, leading to data integrity issues and unauthorized data creation. While a `ValidationFilterAttribute` is present, it only validates the format of the input, not the authorization to perform the action."
+            },
+            "exploitable": true,
+            "shortSummary": "Missing [Authorize] on POST /api/companies/{companyId}/employees",
+            "attackVectors": [
+              "Unauthenticated HTTP POST request to /api/companies/{companyId}/employees"
+            ],
+            "attackComplexity": "Low. An attacker only needs to send a simple HTTP POST request to the vulnerable endpoint with a valid `companyId` and a well-formed `EmployeeForCreationDto` payload.",
+            "impactAssessment": "High. An attacker can create arbitrary employee records for any company, leading to data integrity issues, potential resource exhaustion, and unauthorized data creation. This could also lead to denial of service if an attacker floods the system with employee creation requests.",
+            "remediationRecommendations": "Add an `[Authorize]` attribute to the `CreateEmployeeForCompanyAsync` method or the `EmployeesController` class to enforce authentication. Additionally, implement granular authorization logic (e.g., using policies or roles) to ensure that only authorized users can create employees for specific companies. For example, `[Authorize(Roles = \"Admin,CompanyManager\")]` and then verify the user's association with the `companyId`."
+          }
+        },
+        {
+          "level": "error",
+          "message": {
+            "text": "The API endpoint '/api/companies/{companyId}/employees' (POST method) is vulnerable to Insecure Direct Object Reference (IDOR) and Broken Access Control. The `companyId` path parameter is used directly to create an employee without validating if the requesting user (if authenticated) has ownership or appropriate permissions for that specific company. This allows an attacker to create employees for any company by simply manipulating the `companyId` in the request URL."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "endLine": 38,
+                  "snippet": {
+                    "text": "        public async Task<IActionResult> CreateEmployeeForCompanyAsync(Guid companyId, [FromBody] EmployeeForCreationDto employee)"
+                  },
+                  "startLine": 38
+                },
+                "artifactLocation": {
+                  "uri": "Presentation/Controllers/EmployeesController.cs"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "id": 3,
+            "type": "IDOR",
+            "confidence": 9,
+            "fixability": 6,
+            "explanation": {
+              "text": "The `companyId` parameter is directly used in the call to `_service.EmployeeService.CreateEmployeeForCompanyAsync(companyId, employee, trackChanges: false);`. There is no logic in the controller to verify if the user making the request is authorized to create employees for the specified `companyId`. An attacker could potentially enumerate or guess valid `companyId` GUIDs and create employees for companies they do not own or manage, leading to unauthorized data manipulation and privilege escalation if employee creation implies certain rights. The `companyId` is directly sourced from the HTTP request path, making it fully attacker-controlled. No authorization or ownership checks are performed on this parameter before it's used in the service layer."
+            },
+            "exploitable": true,
+            "shortSummary": "IDOR in companyId for employee creation",
+            "attackVectors": [
+              "HTTP POST request with manipulated path parameter `companyId`."
+            ],
+            "attackComplexity": "Low. An attacker only needs to be authenticated and able to send HTTP POST requests. They can easily enumerate or guess valid `companyId` GUIDs to target other companies.",
+            "impactAssessment": "This vulnerability allows an authenticated attacker to create employees for any company by manipulating the `companyId` in the request URL. This directly impacts the integrity of data, as unauthorized employees can be added to companies. Depending on the application's logic, this could also lead to privilege escalation if newly created employees are granted default permissions that an attacker could leverage. Confidentiality could be indirectly affected if an attacker can then access information through the created employee account. Availability is not directly impacted.",
+            "remediationRecommendations": "Implement robust authorization checks within the `CreateEmployeeForCompanyAsync` method. Before calling `_service.EmployeeService.CreateEmployeeForCompanyAsync`, verify that the authenticated user has the necessary permissions or ownership for the `companyId` specified in the URL. This typically involves retrieving the user's associated company IDs (e.g., from their authentication token or a user-company mapping in the database) and comparing it with the `companyId` from the request. If there's a mismatch, return an Unauthorized (401) or Forbidden (403) response. Consider using an authorization policy or attribute to enforce this check consistently across relevant endpoints."
+          }
+        }
+      ]
+    }
+  ]
+}

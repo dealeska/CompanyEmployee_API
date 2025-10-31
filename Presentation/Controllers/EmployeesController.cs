@@ -5,6 +5,7 @@ using Service.Contracts;
 using Shared.DataTransferObjects;
 using Shared.RequestFeatures;
 using System.Text.Json;
+using System.Security.Claims;
 
 namespace Presentation.Controllers
 {
@@ -40,6 +41,11 @@ namespace Presentation.Controllers
         public async Task<IActionResult> CreateEmployeeForCompanyAsync(Guid companyId, [FromBody] EmployeeForCreationDto employee)
         {
 
+            var company = await _service.CompanyService.GetCompanyByIdAsync(companyId, trackChanges: false);
+            if (company == null || company.OwnerId != User.FindFirst(ClaimTypes.NameIdentifier)?.Value)
+            {
+                return Unauthorized();
+            }
             var employeeToReturn = await _service.EmployeeService.CreateEmployeeForCompanyAsync(companyId, employee, trackChanges: false);
             return CreatedAtRoute("GetEmployeeForCompany", new
             {
