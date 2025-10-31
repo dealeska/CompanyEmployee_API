@@ -70,6 +70,7 @@ namespace Presentation.Controllers
 
         [HttpPut("{id:guid}")]
         [ServiceFilter(typeof(ValidationFilterAttribute))]
+        [Authorize]
         public async Task<IActionResult> UpdateCompanyAsync(Guid id, [FromBody] CompanyForUpdateDto company)
         {
             await _service.CompanyService.UpdateCompanyAsync(id, company, trackChanges: true);
