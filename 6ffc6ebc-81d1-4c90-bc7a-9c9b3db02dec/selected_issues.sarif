@@ -1,0 +1,121 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://docs.oasis-open.org/sarif/sarif/v2.1.0/errata01/os/schemas/sarif-schema-2.1.0.json",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "fraim",
+          "version": "1.0.0"
+        }
+      },
+      "results": [
+        {
+          "level": "error",
+          "message": {
+            "text": "The endpoint `/api/companies/{companyId}/employees/{id}` (PATCH) lacks any authentication mechanism, allowing unauthenticated access to modify employee records."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "endLine": 68,
+                  "snippet": {
+                    "text": "        public async Task<IActionResult> PartiallyUpdateEmployeeForCompanyAsync(Guid companyId, Guid id, [FromBody] JsonPatchDocument<EmployeeForUpdateDto> patchDoc)"
+                  },
+                  "startLine": 68
+                },
+                "artifactLocation": {
+                  "uri": "Presentation/Controllers/EmployeesController.cs"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "id": 13,
+            "type": "Broken Authentication",
+            "confidence": 10,
+            "fixability": 10,
+            "explanation": {
+              "text": "The `PartiallyUpdateEmployeeForCompanyAsync` method in `Presentation/Controllers/EmployeesController.cs` at line 68 is directly exposed via an HTTP PATCH endpoint (`/api/companies/{companyId}/employees/{id}`). The provided code snippet and OpenAPI specification confirm the absence of any authentication or authorization attributes (e.g., `[Authorize]`). This means the endpoint is publicly accessible without requiring any form of user authentication. An attacker can send PATCH requests to this endpoint, controlling `companyId`, `id` (via path parameters), and `patchDoc` (via request body). By guessing or iterating GUIDs, an attacker can modify employee data for any company and employee, leading to unauthorized data modification, data integrity issues, and potential privacy breaches. The existing `ModelState` validation only checks the validity of the patched model, not the authorization of the request."
+            },
+            "exploitable": true,
+            "shortSummary": "Unauthenticated PATCH allows employee data modification",
+            "methodIdentifier": "/Users/dealeska/Desktop/apienvy/repository_data/demo/34a3ed29-08d6-45b5-a278-ad893db4aa97/Presentation/Controllers/EmployeesController.cs::EmployeesController::PartiallyUpdateEmployeeForCompanyAsync",
+            "remediationRecommendations": "Implement robust authentication and authorization for the `/api/companies/{companyId}/employees/{id}` PATCH endpoint. Add an `[Authorize]` attribute (or equivalent framework-specific attribute) to the `PartiallyUpdateEmployeeForCompanyAsync` method or its containing controller. Ensure that only authenticated and authorized users (e.g., administrators or users with specific roles/permissions) can modify employee records. Additionally, implement granular access control checks to ensure users can only modify employees within their permitted scope (e.g., their own company)."
+          }
+        },
+        {
+          "level": "error",
+          "message": {
+            "text": "The endpoint `/api/companies/{companyId}/employees/{id}` (PATCH) is vulnerable to Insecure Direct Object Reference (IDOR). The `companyId` and `id` parameters are directly used to access and modify employee records without proper authorization checks to ensure the requesting user has permission for the specified company and employee."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "endLine": 73,
+                  "snippet": {
+                    "text": "            var result = await _service.EmployeeService.GetEmployeeForPatchAsync(companyId, id, compTrackChanges: false, empTrackChanges: true);"
+                  },
+                  "startLine": 73
+                },
+                "artifactLocation": {
+                  "uri": "Presentation/Controllers/EmployeesController.cs"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "id": 14,
+            "type": "IDOR",
+            "confidence": 9,
+            "fixability": 6,
+            "explanation": {
+              "text": "The `companyId` and `id` path parameters are directly used in the `_service.EmployeeService.GetEmployeeForPatchAsync` call to retrieve the employee entity. These parameters are attacker-controlled as they are part of the HTTP request path. There are no authorization checks in the provided code to verify if the authenticated user has the necessary permissions to access or modify the employee record identified by these GUIDs. An attacker can manipulate these parameters to access and modify employee records belonging to other companies or employees they are not authorized to manage, leading to unauthorized data modification across the system."
+            },
+            "exploitable": true,
+            "shortSummary": "IDOR in employee update via path params",
+            "methodIdentifier": "/Users/dealeska/Desktop/apienvy/repository_data/demo/34a3ed29-08d6-45b5-a278-ad893db4aa97/Presentation/Controllers/EmployeesController.cs::EmployeesController::PartiallyUpdateEmployeeForCompanyAsync",
+            "remediationRecommendations": "Implement robust authorization checks within the `PartiallyUpdateEmployeeForCompanyAsync` method to ensure the authenticated user has permission to access and modify the specified `companyId` and `id` before calling `_service.EmployeeService.GetEmployeeForPatchAsync`. This typically involves verifying the user's roles, ownership, or other access control mechanisms against the `companyId` and `id` provided in the request. For example, check if the current user is associated with the `companyId` or has administrative privileges to manage employees across companies."
+          }
+        },
+        {
+          "level": "error",
+          "message": {
+            "text": "The endpoint `/api/companies/{companyId}/employees/{id}` (PUT) lacks explicit authentication requirements, potentially allowing unauthenticated access to update employee data."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "endLine": 59,
+                  "snippet": {
+                    "text": "        public async Task<IActionResult> UpdateEmployeeForCompanyAsync(Guid companyId, Guid id, [FromBody] EmployeeForUpdateDto employee)"
+                  },
+                  "startLine": 59
+                },
+                "artifactLocation": {
+                  "uri": "Presentation/Controllers/EmployeesController.cs"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "id": 15,
+            "type": "Broken Authentication",
+            "confidence": 9,
+            "fixability": 10,
+            "explanation": {
+              "text": "The `UpdateEmployeeForCompanyAsync` method in `EmployeesController.cs` is an HTTP PUT endpoint directly exposed to external requests. The absence of an `[Authorize]` attribute or similar authentication mechanism means that any unauthenticated attacker can send requests to this endpoint. The `companyId` and `id` parameters from the URL path, and the `employee` object from the request body, are all attacker-controlled. While a `ValidationFilterAttribute` is present, its name suggests data validation rather than authentication, and it does not mitigate the core issue of unauthorized access. This allows an attacker to update employee data without proper authentication, leading to unauthorized data modification and potential data corruption."
+            },
+            "exploitable": true,
+            "shortSummary": "Unauthenticated PUT allows employee data update",
+            "methodIdentifier": "/Users/dealeska/Desktop/apienvy/repository_data/demo/34a3ed29-08d6-45b5-a278-ad893db4aa97/Presentation/Controllers/EmployeesController.cs::EmployeesController::UpdateEmployeeForCompanyAsync",
+            "remediationRecommendations": "Add an `[Authorize]` attribute to the `UpdateEmployeeForCompanyAsync` method or the `EmployeesController` class to enforce authentication. Additionally, implement robust authorization checks to ensure that the authenticated user has the necessary permissions to update employee data for the specified company and employee (e.g., ensuring the user is an administrator or belongs to the company)."
+          }
+        }
+      ]
+    }
+  ]
+}
