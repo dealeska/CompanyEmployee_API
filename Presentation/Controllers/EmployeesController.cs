@@ -58,8 +58,14 @@ namespace Presentation.Controllers
 
         [HttpPut("{id:guid}")]
         [ServiceFilter(typeof(ValidationFilterAttribute))]
+        [Microsoft.AspNetCore.Authorization.Authorize]
         public async Task<IActionResult> UpdateEmployeeForCompanyAsync(Guid companyId, Guid id, [FromBody] EmployeeForUpdateDto employee)
         {
+            var authorized = await _service.CompanyService.UserIsAuthorizedForCompany(User, companyId);
+            if (!authorized)
+            {
+                return Forbid();
+            }
             await _service.EmployeeService.UpdateEmployeeForCompanyAsync(companyId, id, employee, compTrackChanges: false, empTrackChanges: true);
             return NoContent();
 
