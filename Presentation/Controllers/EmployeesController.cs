@@ -5,6 +5,7 @@ using Service.Contracts;
 using Shared.DataTransferObjects;
 using Shared.RequestFeatures;
 using System.Text.Json;
+using System.Security.Claims;
 
 namespace Presentation.Controllers
 {
@@ -70,6 +71,17 @@ namespace Presentation.Controllers
         {
             if (patchDoc is null)
                 return BadRequest("patchDoc object sent from client is null.");
+            // Implement robust authorization checks to prevent IDOR
+            // This example assumes a "CompanyId" claim for regular users and an "Administrator" role.
+            if (!User.IsInRole("Administrator"))
+            {
+                var userCompanyIdClaim = User.FindFirst("CompanyId");
+                if (userCompanyIdClaim == null || !Guid.TryParse(userCompanyIdClaim.Value, out var userCompanyId) || userCompanyId != companyId)
+                {
+                    return Forbid(); // User is not authorized for this company
+                }
+            }
+
 
             var result = await _service.EmployeeService.GetEmployeeForPatchAsync(companyId, id, compTrackChanges: false, empTrackChanges: true);
             patchDoc.ApplyTo(result.employeeToPatch, ModelState);
