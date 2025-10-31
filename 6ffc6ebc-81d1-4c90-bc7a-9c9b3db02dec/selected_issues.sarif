@@ -1,0 +1,51 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://docs.oasis-open.org/sarif/sarif/v2.1.0/errata01/os/schemas/sarif-schema-2.1.0.json",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "fraim",
+          "version": "1.0.0"
+        }
+      },
+      "results": [
+        {
+          "level": "error",
+          "message": {
+            "text": "The endpoint `/api/companies/{companyId}/employees/{id}` (PATCH) lacks any authentication mechanism, allowing unauthenticated access to modify employee records."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "region": {
+                  "endLine": 68,
+                  "snippet": {
+                    "text": "        public async Task<IActionResult> PartiallyUpdateEmployeeForCompanyAsync(Guid companyId, Guid id, [FromBody] JsonPatchDocument<EmployeeForUpdateDto> patchDoc)"
+                  },
+                  "startLine": 68
+                },
+                "artifactLocation": {
+                  "uri": "Presentation/Controllers/EmployeesController.cs"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "id": 13,
+            "type": "Broken Authentication",
+            "confidence": 10,
+            "fixability": 10,
+            "explanation": {
+              "text": "The `PartiallyUpdateEmployeeForCompanyAsync` method in `Presentation/Controllers/EmployeesController.cs` at line 68 is directly exposed via an HTTP PATCH endpoint (`/api/companies/{companyId}/employees/{id}`). The provided code snippet and OpenAPI specification confirm the absence of any authentication or authorization attributes (e.g., `[Authorize]`). This means the endpoint is publicly accessible without requiring any form of user authentication. An attacker can send PATCH requests to this endpoint, controlling `companyId`, `id` (via path parameters), and `patchDoc` (via request body). By guessing or iterating GUIDs, an attacker can modify employee data for any company and employee, leading to unauthorized data modification, data integrity issues, and potential privacy breaches. The existing `ModelState` validation only checks the validity of the patched model, not the authorization of the request."
+            },
+            "exploitable": true,
+            "shortSummary": "Unauthenticated PATCH allows employee data modification",
+            "methodIdentifier": "/Users/dealeska/Desktop/apienvy/repository_data/demo/34a3ed29-08d6-45b5-a278-ad893db4aa97/Presentation/Controllers/EmployeesController.cs::EmployeesController::PartiallyUpdateEmployeeForCompanyAsync",
+            "remediationRecommendations": "Implement robust authentication and authorization for the `/api/companies/{companyId}/employees/{id}` PATCH endpoint. Add an `[Authorize]` attribute (or equivalent framework-specific attribute) to the `PartiallyUpdateEmployeeForCompanyAsync` method or its containing controller. Ensure that only authenticated and authorized users (e.g., administrators or users with specific roles/permissions) can modify employee records. Additionally, implement granular access control checks to ensure users can only modify employees within their permitted scope (e.g., their own company)."
+          }
+        }
+      ]
+    }
+  ]
+}
