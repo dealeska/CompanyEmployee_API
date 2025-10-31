@@ -69,6 +69,7 @@ namespace Presentation.Controllers
         }
 
         [HttpPut("{id:guid}")]
+        [Authorize(Roles = "Administrator")]
         [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> UpdateCompanyAsync(Guid id, [FromBody] CompanyForUpdateDto company)
         {
