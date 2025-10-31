@@ -16,6 +16,7 @@ namespace Presentation.Controllers
         private readonly IServiceManager _service;
         public TokenController(IServiceManager service) => _service = service;
 
+        [AllowAnonymous]
         [HttpPost("refresh")]
         [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> Refresh([FromBody] TokenDto tokenDto)
