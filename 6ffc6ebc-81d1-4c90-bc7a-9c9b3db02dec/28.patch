@@ -1,0 +1,185 @@
+From 3977329acd32584b7c33c1faf5635a6db812c704 Mon Sep 17 00:00:00 2001
+From: Auto Remediation Bot <support@nightvision.net>
+Date: Fri, 31 Oct 2025 12:35:05 +0000
+Subject: [PATCH] Fix issue 28: Unauthenticated access to company data
+
+---
+ 6ffc6ebc-81d1-4c90-bc7a-9c9b3db02dec/27.patch   | 154 ++++++++++++++++++++++++
+ Presentation/Controllers/CompaniesController.cs |   1 +
+ 2 files changed, 155 insertions(+)
+ create mode 100644 6ffc6ebc-81d1-4c90-bc7a-9c9b3db02dec/27.patch
+
+diff --git a/6ffc6ebc-81d1-4c90-bc7a-9c9b3db02dec/27.patch b/6ffc6ebc-81d1-4c90-bc7a-9c9b3db02dec/27.patch
+new file mode 100644
+index 0000000..a9bb5ea
+--- /dev/null
++++ b/6ffc6ebc-81d1-4c90-bc7a-9c9b3db02dec/27.patch
+@@ -0,0 +1,154 @@
++From 90ecc18bfeb85880acf275ccd9a1519ff0a22a7b Mon Sep 17 00:00:00 2001
++From: Auto Remediation Bot <support@nightvision.net>
++Date: Fri, 31 Oct 2025 12:35:01 +0000
++Subject: [PATCH] Fix issue 27: IDOR in company collection endpoint
++
++---
++ .../selected_issues.sarif                          | 121 +++++++++++++++++++++
++ Presentation/Controllers/CompaniesController.cs    |   1 +
++ 2 files changed, 122 insertions(+)
++ create mode 100644 6ffc6ebc-81d1-4c90-bc7a-9c9b3db02dec/selected_issues.sarif
++
++diff --git a/6ffc6ebc-81d1-4c90-bc7a-9c9b3db02dec/selected_issues.sarif b/6ffc6ebc-81d1-4c90-bc7a-9c9b3db02dec/selected_issues.sarif
++new file mode 100644
++index 0000000..4259443
++--- /dev/null
+++++ b/6ffc6ebc-81d1-4c90-bc7a-9c9b3db02dec/selected_issues.sarif
++@@ -0,0 +1,121 @@
+++{
+++  "version": "2.1.0",
+++  "$schema": "https://docs.oasis-open.org/sarif/sarif/v2.1.0/errata01/os/schemas/sarif-schema-2.1.0.json",
+++  "runs": [
+++    {
+++      "tool": {
+++        "driver": {
+++          "name": "fraim",
+++          "version": "1.0.0"
+++        }
+++      },
+++      "results": [
+++        {
+++          "level": "error",
+++          "message": {
+++            "text": "The endpoint `/api/companies/collection/({ids})` is vulnerable to Insecure Direct Object Reference (IDOR). An attacker can supply arbitrary company GUIDs in the URL to retrieve company data without proper authorization checks."
+++          },
+++          "locations": [
+++            {
+++              "physicalLocation": {
+++                "region": {
+++                  "endLine": 55,
+++                  "snippet": {
+++                    "text": "[HttpGet(\"collection/({ids})\", Name = \"CompanyCollection\")]\n        public async Task<IActionResult> GetCompanyCollectionAsync([ModelBinder(BinderType = typeof(ArrayModelBinder))] IEnumerable<Guid> ids)\n        {\n            var companies = await _service.CompanyService.GetByIdsAsync(ids, trackChanges: false);\n            return Ok(companies);\n        }"
+++                  },
+++                  "startLine": 50
+++                },
+++                "artifactLocation": {
+++                  "uri": "Presentation/Controllers/CompaniesController.cs"
+++                }
+++              }
+++            }
+++          ],
+++          "properties": {
+++            "id": 27,
+++            "type": "IDOR",
+++            "confidence": 10,
+++            "fixability": 6,
+++            "explanation": {
+++              "text": "The `GetCompanyCollectionAsync` method in `CompaniesController.cs` directly accepts a collection of `ids` from the URL path. These `ids` are then passed to `_service.CompanyService.GetByIdsAsync` without any prior validation or authorization checks to ensure the requesting user has ownership or permission to access the companies corresponding to the provided GUIDs. This allows an attacker to enumerate or guess valid company GUIDs and retrieve sensitive company data, bypassing intended access controls. The input is directly from an HTTP request, making it fully attacker-controlled and highly exploitable."
+++            },
+++            "exploitable": true,
+++            "shortSummary": "IDOR in company collection endpoint",
+++            "methodIdentifier": "/Users/dealeska/Desktop/apienvy/repository_data/demo/34a3ed29-08d6-45b5-a278-ad893db4aa97/Presentation/Controllers/CompaniesController.cs::CompaniesController::GetCompanyCollectionAsync",
+++            "remediationRecommendations": "Implement robust authorization checks within the `GetCompanyCollectionAsync` method or within the `CompanyService.GetByIdsAsync` method. Before fetching company data, verify that the authenticated user is authorized to access each requested company ID. This typically involves comparing the requested company IDs against a list of companies the user is permitted to view, or by filtering the query based on the user's organizational affiliation. Consider using an authorization framework or policy-based authorization to enforce these checks consistently."
+++          }
+++        },
+++        {
+++          "level": "error",
+++          "message": {
+++            "text": "Sensitive company data is exposed through the `/api/companies/collection/({ids})` endpoint due to a lack of authentication and authorization."
+++          },
+++          "locations": [
+++            {
+++              "physicalLocation": {
+++                "region": {
+++                  "endLine": 55,
+++                  "snippet": {
+++                    "text": "[HttpGet(\"collection/({ids})\", Name = \"CompanyCollection\")]\n        public async Task<IActionResult> GetCompanyCollectionAsync([ModelBinder(BinderType = typeof(ArrayModelBinder))] IEnumerable<Guid> ids)\n        {\n            var companies = await _service.CompanyService.GetByIdsAsync(ids, trackChanges: false);\n            return Ok(companies);\n        }"
+++                  },
+++                  "startLine": 50
+++                },
+++                "artifactLocation": {
+++                  "uri": "Presentation/Controllers/CompaniesController.cs"
+++                }
+++              }
+++            }
+++          ],
+++          "properties": {
+++            "id": 28,
+++            "type": "Sensitive Data Exposure",
+++            "confidence": 10,
+++            "fixability": 10,
+++            "explanation": {
+++              "text": "The `GetCompanyCollectionAsync` method in `CompaniesController.cs` is exposed via an HTTP GET endpoint `/api/companies/collection/({ids})`. The `ids` parameter is directly controlled by the attacker through the URL path. There are no authentication or authorization mechanisms (e.g., `[Authorize]` attributes) applied to either the method or the controller. This means any unauthenticated user can access this endpoint and retrieve company data by providing valid GUIDs for company IDs. Company data is often sensitive and its public exposure can lead to business intelligence leaks, competitive disadvantages, or further attacks."
+++            },
+++            "exploitable": true,
+++            "shortSummary": "Unauthenticated access to company data",
+++            "methodIdentifier": "/Users/dealeska/Desktop/apienvy/repository_data/demo/34a3ed29-08d6-45b5-a278-ad893db4aa97/Presentation/Controllers/CompaniesController.cs::CompaniesController::GetCompanyCollectionAsync",
+++            "remediationRecommendations": "Implement proper authentication and authorization for the `/api/companies/collection/({ids})` endpoint. This can be achieved by adding an `[Authorize]` attribute to the `GetCompanyCollectionAsync` method or the `CompaniesController` class, ensuring that only authenticated and authorized users can access this sensitive data. Additionally, consider implementing granular authorization checks to ensure users can only access data they are permitted to see (e.g., companies they own or are associated with)."
+++          }
+++        },
+++        {
+++          "level": "error",
+++          "message": {
+++            "text": "The `/api/token/refresh` endpoint lacks explicit authentication at the controller level, making it publicly accessible. This shifts the entire burden of authentication to the `AuthenticationService.RefreshToken` method. If this service method's validation is insufficient, it could lead to unauthorized token refreshes or session hijacking."
+++          },
+++          "locations": [
+++            {
+++              "physicalLocation": {
+++                "region": {
+++                  "endLine": 25,
+++                  "snippet": {
+++                    "text": "[HttpPost(\"refresh\")]\n        [ServiceFilter(typeof(ValidationFilterAttribute))]\n        public async Task<IActionResult> Refresh([FromBody] TokenDto tokenDto)\n        {\n            var tokenDtoToReturn = await _service.AuthenticationService.RefreshToken(tokenDto);\n            return Ok(tokenDtoToReturn);\n        }"
+++                  },
+++                  "startLine": 19
+++                },
+++                "artifactLocation": {
+++                  "uri": "Presentation/Controllers/TokenController.cs"
+++                }
+++              }
+++            }
+++          ],
+++          "properties": {
+++            "id": 29,
+++            "type": "Broken Authentication",
+++            "confidence": 8,
+++            "fixability": 10,
+++            "explanation": {
+++              "text": "The `/api/token/refresh` endpoint is publicly accessible without any framework-level authentication. An attacker can directly send a POST request to this endpoint with a crafted `TokenDto`. The `tokenDto` parameter, which contains the refresh token, is attacker-controlled as it comes from the request body. While a `ValidationFilterAttribute` is present, it's unlikely to provide full authentication/authorization checks. The vulnerability highlights that the framework does not enforce any authentication before the `AuthenticationService.RefreshToken` method is called. If the `RefreshToken` method does not robustly validate the refresh token's authenticity, expiration, and association with a legitimate user, a compromised refresh token could be used to obtain new access tokens, leading to session hijacking or unauthorized access. This is a high-risk scenario as the input is directly from an HTTP request."
+++            },
+++            "exploitable": true,
+++            "shortSummary": "Missing authentication on /api/token/refresh",
+++            "methodIdentifier": "/Users/dealeska/Desktop/apienvy/repository_data/demo/34a3ed29-08d6-45b5-a278-ad893db4aa97/Presentation/Controllers/TokenController.cs::TokenController::Refresh",
+++            "remediationRecommendations": "1. **Add `[Authorize]` attribute:** Apply the `[Authorize]` attribute to the `Refresh` method (or the `TokenController` if all its actions require authorization). This will ensure that only authenticated users (or users with specific roles/policies) can access this endpoint, enforcing framework-level authentication before the service call.\n2. **Implement robust refresh token validation:** Ensure the `AuthenticationService.RefreshToken` method performs comprehensive validation of the refresh token, including:\n    *   Checking if the token is valid and not revoked.\n    *   Verifying the token's signature and integrity.\n    *   Ensuring the token has not expired (while refresh tokens have a longer lifespan, they should still be revocable).\n    *   Associating the refresh token with the correct user and client.\n    *   Implementing refresh token rotation and single-use policies to prevent replay attacks."
+++          }
+++        }
+++      ]
+++    }
+++  ]
+++}
++\ No newline at end of file
++diff --git a/Presentation/Controllers/CompaniesController.cs b/Presentation/Controllers/CompaniesController.cs
++index 986a989..f614772 100644
++--- a/Presentation/Controllers/CompaniesController.cs
+++++ b/Presentation/Controllers/CompaniesController.cs
++@@ -15,6 +15,7 @@ namespace Presentation.Controllers
++     // [ResponseCache(CacheProfileName = "120SecondsDuration")]
++     public class CompaniesController : ControllerBase
++     {
+++        [Authorize]
++         private readonly IServiceManager _service;
++         public CompaniesController(IServiceManager service) => _service = service;
++
++--
++2.15.0
++
+diff --git a/Presentation/Controllers/CompaniesController.cs b/Presentation/Controllers/CompaniesController.cs
+index f614772..aaeae2f 100644
+--- a/Presentation/Controllers/CompaniesController.cs
++++ b/Presentation/Controllers/CompaniesController.cs
+@@ -49,6 +49,7 @@ namespace Presentation.Controllers
+         }
+
+         [HttpGet("collection/({ids})", Name = "CompanyCollection")]
++        [Authorize]
+         public async Task<IActionResult> GetCompanyCollectionAsync([ModelBinder(BinderType = typeof(ArrayModelBinder))] IEnumerable<Guid> ids)
+         {
+             var companies = await _service.CompanyService.GetByIdsAsync(ids, trackChanges: false);
+--
+2.15.0
