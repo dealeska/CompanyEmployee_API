@@ -66,6 +66,7 @@ namespace Presentation.Controllers
         }
 
         [HttpPatch("{id:guid}")]
+        [Microsoft.AspNetCore.Authorization.Authorize]
         public async Task<IActionResult> PartiallyUpdateEmployeeForCompanyAsync(Guid companyId, Guid id, [FromBody] JsonPatchDocument<EmployeeForUpdateDto> patchDoc)
         {
             if (patchDoc is null)
