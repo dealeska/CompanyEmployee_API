@@ -5,6 +5,8 @@ using Presentation.ActionFilters;
 using Presentation.ModelBinders;
 using Service.Contracts;
 using Shared.DataTransferObjects;
+using System.Linq;
+using System.Security.Claims;
 
 namespace Presentation.Controllers
 {
@@ -49,9 +51,23 @@ namespace Presentation.Controllers
 
         [HttpGet("collection/({ids})", Name = "CompanyCollection")]
         public async Task<IActionResult> GetCompanyCollectionAsync([ModelBinder(BinderType = typeof(ArrayModelBinder))] IEnumerable<Guid> ids)
+        [Authorize]
         {
             var companies = await _service.CompanyService.GetByIdsAsync(ids, trackChanges: false);
-            return Ok(companies);
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
+
+            // Assuming a service method to get authorized company IDs for the user
+            // This method would typically query the database to determine which companies the current user has access to.
+            var authorizedCompanyIds = await _service.CompanyService.GetAuthorizedCompanyIdsAsync(userId);
+
+            // Filter the requested IDs to only include those the user is authorized to access
+            ids = ids.Intersect(authorizedCompanyIds);
+
+            var companies = await _service.CompanyService.GetByIdsAsync(ids, trackChanges: false);
         }
 
         [HttpPost("collection")]
