@@ -14,6 +14,7 @@ namespace Presentation.Controllers
     [ApiExplorerSettings(GroupName = "v1")]
     // [ResponseCache(CacheProfileName = "120SecondsDuration")]
     public class CompaniesController : ControllerBase
+        [Authorize(Roles = "Administrator")]
     {
         private readonly IServiceManager _service;
         public CompaniesController(IServiceManager service) => _service = service;
