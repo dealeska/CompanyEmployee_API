@@ -5,6 +5,7 @@ using Presentation.ActionFilters;
 using Presentation.ModelBinders;
 using Service.Contracts;
 using Shared.DataTransferObjects;
+using System.Security.Claims;
 
 namespace Presentation.Controllers
 {
@@ -33,9 +34,16 @@ namespace Presentation.Controllers
         [HttpGet("{id:guid}", Name = "CompanyById")]
         [HttpCacheExpiration(CacheLocation = CacheLocation.Public, MaxAge = 60)]
         [HttpCacheValidation(MustRevalidate = false)]
+        [Authorize]
         public async Task<IActionResult> GetCompany(Guid id)
         {
-            var company = await _service.CompanyService.GetCompanyAsync(id, trackChanges: false);
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+            Guid userGuid = Guid.Parse(userId);
+            var company = await _service.CompanyService.GetCompanyAsync(userGuid, id, trackChanges: false);
             return Ok(company);
         }
 
