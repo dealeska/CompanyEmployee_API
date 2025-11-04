@@ -20,6 +20,7 @@ namespace Presentation.Controllers
 
         /// <summary>
         /// Gets the list of all companies
+        [Authorize]
         /// </summary>
         /// <returns>The companies list</returns>
         [HttpGet]
