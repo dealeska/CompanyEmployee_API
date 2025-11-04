@@ -5,6 +5,7 @@ using Service.Contracts;
 using Shared.DataTransferObjects;
 using Shared.RequestFeatures;
 using System.Text.Json;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Presentation.Controllers
 {
@@ -58,8 +59,19 @@ namespace Presentation.Controllers
 
         [HttpPut("{id:guid}")]
         [ServiceFilter(typeof(ValidationFilterAttribute))]
+        [Authorize]
         public async Task<IActionResult> UpdateEmployeeForCompanyAsync(Guid companyId, Guid id, [FromBody] EmployeeForUpdateDto employee)
         {
+            // Implement ownership check: Verify that the specified employee (id) belongs to the company (companyId).
+            // This prevents Insecure Direct Object Reference (IDOR) by ensuring an attacker cannot manipulate
+            // the companyId or id to access or modify unauthorized employee records.
+            var employeeEntity = await _service.EmployeeService.GetEmployeeAsync(companyId, id, trackChanges: false);
+            if (employeeEntity == null)
+            {
+                // If the employee does not exist for the given companyId, return NotFound.
+                // This implicitly validates the companyId-employeeId relationship.
+                return NotFound();
+            }
             await _service.EmployeeService.UpdateEmployeeForCompanyAsync(companyId, id, employee, compTrackChanges: false, empTrackChanges: true);
             return NoContent();
 
