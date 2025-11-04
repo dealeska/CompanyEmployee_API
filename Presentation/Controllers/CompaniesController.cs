@@ -31,6 +31,7 @@ namespace Presentation.Controllers
         }
 
         [HttpGet("{id:guid}", Name = "CompanyById")]
+        [Authorize]
         [HttpCacheExpiration(CacheLocation = CacheLocation.Public, MaxAge = 60)]
         [HttpCacheValidation(MustRevalidate = false)]
         public async Task<IActionResult> GetCompany(Guid id)
