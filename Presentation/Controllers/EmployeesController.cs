@@ -5,6 +5,8 @@ using Service.Contracts;
 using Shared.DataTransferObjects;
 using Shared.RequestFeatures;
 using System.Text.Json;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace Presentation.Controllers
 {
@@ -29,8 +31,14 @@ namespace Presentation.Controllers
         }
 
         [HttpGet("{id:guid}", Name = "GetEmployeeForCompany")]
+        [Authorize]
         public async Task<IActionResult> GetEmployeeForCompanyAsync(Guid companyId, Guid id)
         {
+            var userCompanyIdClaim = User.Claims.FirstOrDefault(c => c.Type == "companyid")?.Value;
+            if (userCompanyIdClaim == null || !Guid.TryParse(userCompanyIdClaim, out Guid userCompanyId) || userCompanyId != companyId)
+            {
+                return Forbid();
+            }
             var employees = await _service.EmployeeService.GetEmployeeAsync(companyId, id, trackChanges: false);
             return Ok(employees);
         }
