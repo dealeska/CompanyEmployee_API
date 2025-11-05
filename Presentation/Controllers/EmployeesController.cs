@@ -5,6 +5,7 @@ using Service.Contracts;
 using Shared.DataTransferObjects;
 using Shared.RequestFeatures;
 using System.Text.Json;
+using System.Security.Claims;
 
 namespace Presentation.Controllers
 {
@@ -15,6 +16,16 @@ namespace Presentation.Controllers
         private readonly IServiceManager _service;
         public EmployeesController(IServiceManager service)
         {
+            // Implement authorization check to verify if the authenticated user is authorized to access the 'companyId'.
+            // This is a placeholder. In a real application, you would retrieve the user's company ID
+            // from their claims (e.g., JWT token) or session data and compare it with the 'companyId' from the URL.
+            var userCompanyIdClaim = User.Claims.FirstOrDefault(c => c.Type == "companyId"); // Assuming a "companyId" claim exists
+            if (userCompanyIdClaim == null || !Guid.TryParse(userCompanyIdClaim.Value, out Guid userCompanyId) || userCompanyId != companyId)
+            {
+                // If the user is not authorized for this companyId, return 403 Forbidden.
+                return Forbid();
+            }
+
             _service = service;
         }
 
