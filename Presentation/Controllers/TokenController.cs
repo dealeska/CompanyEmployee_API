@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Presentation.ActionFilters;
 using Service.Contracts;
 using Shared.DataTransferObjects;
@@ -18,6 +19,7 @@ namespace Presentation.Controllers
 
         [HttpPost("refresh")]
         [ServiceFilter(typeof(ValidationFilterAttribute))]
+        [AllowAnonymous]
         public async Task<IActionResult> Refresh([FromBody] TokenDto tokenDto)
         {
             var tokenDtoToReturn = await _service.AuthenticationService.RefreshToken(tokenDto);
