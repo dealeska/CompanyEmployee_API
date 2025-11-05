@@ -4,6 +4,7 @@ using Presentation.ActionFilters;
 using Service.Contracts;
 using Shared.DataTransferObjects;
 using Shared.RequestFeatures;
+using Microsoft.AspNetCore.Authorization;
 using System.Text.Json;
 
 namespace Presentation.Controllers
@@ -20,8 +21,14 @@ namespace Presentation.Controllers
 
         [HttpGet]
         [HttpHead]
+        [Authorize]
         public async Task<IActionResult> GetEmployeesForCompanyAsync(Guid companyId, [FromQuery] EmployeeParameters employeeParameters)
         {
+            var userCompanyIdClaim = User.FindFirst("CompanyId")?.Value;
+            if (userCompanyIdClaim == null || !Guid.TryParse(userCompanyIdClaim, out Guid userCompanyId) || userCompanyId != companyId)
+            {
+                return Unauthorized();
+            }
             var pagedResult = await _service.EmployeeService.GetEmployeesAsync(companyId, employeeParameters, trackChanges: false);
 
             Response.Headers.Add("X-Pagination", JsonSerializer.Serialize(pagedResult.metaData));
