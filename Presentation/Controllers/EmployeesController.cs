@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Presentation.ActionFilters;
+using Microsoft.AspNetCore.Authorization;
 using Service.Contracts;
 using Shared.DataTransferObjects;
 using Shared.RequestFeatures;
@@ -12,6 +13,7 @@ namespace Presentation.Controllers
     [ApiController]
     public class EmployeesController : ControllerBase
     {
+        [Authorize]
         private readonly IServiceManager _service;
         public EmployeesController(IServiceManager service)
         {
