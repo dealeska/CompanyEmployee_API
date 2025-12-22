@@ -5,6 +5,7 @@ using Presentation.ActionFilters;
 using Presentation.ModelBinders;
 using Service.Contracts;
 using Shared.DataTransferObjects;
+using System.Security.Claims;
 
 namespace Presentation.Controllers
 {
@@ -33,8 +34,25 @@ namespace Presentation.Controllers
         [HttpGet("{id:guid}", Name = "CompanyById")]
         [HttpCacheExpiration(CacheLocation = CacheLocation.Public, MaxAge = 60)]
         [HttpCacheValidation(MustRevalidate = false)]
+        [Authorize]
         public async Task<IActionResult> GetCompany(Guid id)
         {
+            // Retrieve the authenticated user's identifier (assuming it's their company ID for authorization)
+            var userIdentifier = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (userIdentifier == null || !Guid.TryParse(userIdentifier, out var userCompanyId))
+            {
+                // User is not authenticated, or their identifier is not a valid GUID
+                // This should ideally be caught by [Authorize] or a more specific policy
+                return Forbid();
+            }
+
+            // Compare the requested 'id' with the user's authorized company ID
+            if (userCompanyId != id)
+            {
+                // User is not authorized to access this specific company
+                return Forbid(); // Or NotFound() to avoid enumeration
+            }
             var company = await _service.CompanyService.GetCompanyAsync(id, trackChanges: false);
             return Ok(company);
         }
