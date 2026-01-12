@@ -31,6 +31,7 @@ namespace Presentation.Controllers
         }
 
         [HttpGet("{id:guid}", Name = "CompanyById")]
+        [Authorize]
         [HttpCacheExpiration(CacheLocation = CacheLocation.Public, MaxAge = 60)]
         [HttpCacheValidation(MustRevalidate = false)]
         public async Task<IActionResult> GetCompany(Guid id)
@@ -40,6 +41,7 @@ namespace Presentation.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> CreateCompanyAsync([FromBody] CompanyForCreationDto company)
         {
@@ -48,6 +50,7 @@ namespace Presentation.Controllers
         }
 
         [HttpGet("collection/({ids})", Name = "CompanyCollection")]
+        [Authorize]
         public async Task<IActionResult> GetCompanyCollectionAsync([ModelBinder(BinderType = typeof(ArrayModelBinder))] IEnumerable<Guid> ids)
         {
             var companies = await _service.CompanyService.GetByIdsAsync(ids, trackChanges: false);
@@ -55,6 +58,7 @@ namespace Presentation.Controllers
         }
 
         [HttpPost("collection")]
+        [Authorize]
         public async Task<IActionResult> CreateCompanyCollectionAsync([FromBody] IEnumerable<CompanyForCreationDto> companyCollection)
         {
             var result = await _service.CompanyService.CreateCompanyCollectionAsync(companyCollection);
@@ -62,6 +66,7 @@ namespace Presentation.Controllers
         }
 
         [HttpDelete("{id:guid}")]
+        [Authorize]
         public async Task<IActionResult> DeleteCompanyasync(Guid id)
         {
             await _service.CompanyService.DeleteCompanyAsync(id, trackChanges: false);
@@ -69,6 +74,7 @@ namespace Presentation.Controllers
         }
 
         [HttpPut("{id:guid}")]
+        [Authorize]
         [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> UpdateCompanyAsync(Guid id, [FromBody] CompanyForUpdateDto company)
         {
