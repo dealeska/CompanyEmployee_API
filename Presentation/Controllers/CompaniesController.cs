@@ -12,6 +12,7 @@ namespace Presentation.Controllers
     [Route("api/companies")]
     [ApiController]
     [ApiExplorerSettings(GroupName = "v1")]
+    [Authorize]
     // [ResponseCache(CacheProfileName = "120SecondsDuration")]
     public class CompaniesController : ControllerBase
     {
@@ -23,7 +24,6 @@ namespace Presentation.Controllers
         /// </summary>
         /// <returns>The companies list</returns>
         [HttpGet]
-        [Authorize]
         public async Task<IActionResult> GetCompanies()
         {
             var companies = await _service.CompanyService.GetAllCompaniesAsync(trackChanges: false);
