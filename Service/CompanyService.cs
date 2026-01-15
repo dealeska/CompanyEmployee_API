@@ -86,9 +86,12 @@ namespace Service
             return (companies: companyCollectionToReturn, ids: ids);
         }
 
-        public async Task DeleteCompanyAsync(Guid companyId, bool trackChanges)
+        public async Task DeleteCompanyAsync(Guid companyId, System.Security.Claims.ClaimsPrincipal user, bool trackChanges)
         {
             var company = await GetCompanyAndCheckIfItExistsAsync(companyId, trackChanges);
+
+            if (!user.IsInRole("Administrator"))
+                throw new UnauthorizedAccessException("Only administrators can delete company details.");
 
             _repository.Company.DeleteCompany(company);
             await _repository.SaveAsync();
