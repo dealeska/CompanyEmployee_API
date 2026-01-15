@@ -23,10 +23,13 @@ namespace Service
 
         private async Task<Company> GetCompanyAndCheckIfItExistsAsync(Guid id, bool trackChanges)
         {
-            var company = await _repository.Company.GetCompanyAsync(id, trackChanges);
+        public async Task<CompanyDto> GetCompanyAsync(Guid companyId, System.Security.Claims.ClaimsPrincipal user, bool trackChanges)
             if (company is null)
                 throw new CompanyNotFoundException(id);
             return company;
+            if (!user.IsInRole("Administrator"))
+                throw new UnauthorizedAccessException("Only administrators can access company details.");
+
         }
 
         public async Task<IEnumerable<CompanyDto>> GetAllCompaniesAsync(bool trackChanges)
