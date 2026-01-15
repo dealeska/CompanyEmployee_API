@@ -50,7 +50,7 @@ namespace Presentation.Controllers
         [HttpGet("collection/({ids})", Name = "CompanyCollection")]
         public async Task<IActionResult> GetCompanyCollectionAsync([ModelBinder(BinderType = typeof(ArrayModelBinder))] IEnumerable<Guid> ids)
         {
-            var companies = await _service.CompanyService.GetByIdsAsync(ids, trackChanges: false);
+            var companies = await _service.CompanyService.GetByIdsAsync(ids, User, trackChanges: false);
             return Ok(companies);
         }
 
