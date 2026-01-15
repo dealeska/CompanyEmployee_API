@@ -35,7 +35,7 @@ namespace Presentation.Controllers
         [HttpCacheValidation(MustRevalidate = false)]
         public async Task<IActionResult> GetCompany(Guid id)
         {
-            var company = await _service.CompanyService.GetCompanyAsync(id, trackChanges: false);
+            var company = await _service.CompanyService.GetCompanyAsync(id, User, trackChanges: false);
             return Ok(company);
         }
 
