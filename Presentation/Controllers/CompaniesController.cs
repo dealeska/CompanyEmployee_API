@@ -72,7 +72,7 @@ namespace Presentation.Controllers
         [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> UpdateCompanyAsync(Guid id, [FromBody] CompanyForUpdateDto company)
         {
-            await _service.CompanyService.UpdateCompanyAsync(id, company, trackChanges: true);
+            await _service.CompanyService.UpdateCompanyAsync(id, company, User, trackChanges: true);
             return NoContent();
         }
 

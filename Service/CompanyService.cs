@@ -91,9 +91,12 @@ namespace Service
             await _repository.SaveAsync();
         }
 
-        public async Task UpdateCompanyAsync(Guid companyId, CompanyForUpdateDto companyForUpdate, bool trackChanges)
+        public async Task UpdateCompanyAsync(Guid companyId, CompanyForUpdateDto companyForUpdate, System.Security.Claims.ClaimsPrincipal user, bool trackChanges)
         {
             var company = await GetCompanyAndCheckIfItExistsAsync(companyId, trackChanges);
+
+            if (!user.IsInRole("Administrator"))
+                throw new UnauthorizedAccessException("Only administrators can update company details.");
 
             _mapper.Map(companyForUpdate, company);
             await _repository.SaveAsync();
