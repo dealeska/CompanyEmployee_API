@@ -53,10 +53,14 @@ namespace Service
             return companyToReturn;
         }
 
-        public async Task<IEnumerable<CompanyDto>> GetByIdsAsync(IEnumerable<Guid> ids, bool trackChanges)
+        public async Task<IEnumerable<CompanyDto>> GetByIdsAsync(IEnumerable<Guid> ids, System.Security.Claims.ClaimsPrincipal user, bool trackChanges)
         {
             if (ids is null)
                 throw new IdParametersBadRequestException();
+
+            if (!user.IsInRole("Admin"))
+                throw new UnauthorizedAccessException("Only administrators can access company collections.");
+
             var companyEntities = await _repository.Company.GetByIdsAsync(ids, trackChanges);
             if (ids.Count() != companyEntities.Count())
                 throw new CollectionByIdsBadRequestException();
