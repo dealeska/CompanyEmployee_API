@@ -23,13 +23,10 @@ namespace Service
 
         private async Task<Company> GetCompanyAndCheckIfItExistsAsync(Guid id, bool trackChanges)
         {
-        public async Task<CompanyDto> GetCompanyAsync(Guid companyId, System.Security.Claims.ClaimsPrincipal user, bool trackChanges)
+            var company = await _repository.Company.GetCompanyAsync(id, trackChanges);
             if (company is null)
                 throw new CompanyNotFoundException(id);
             return company;
-            if (!user.IsInRole("Administrator"))
-                throw new UnauthorizedAccessException("Only administrators can access company details.");
-
         }
 
         public async Task<IEnumerable<CompanyDto>> GetAllCompaniesAsync(bool trackChanges)
@@ -41,6 +38,23 @@ namespace Service
 
         public async Task<CompanyDto> GetCompanyAsync(Guid companyId, bool trackChanges)
         {
+            var company = await GetCompanyAndCheckIfItExistsAsync(companyId, trackChanges);
+
+            var companyDto = _mapper.Map<CompanyDto>(company);
+            return companyDto;
+        }
+
+        public async Task<CompanyDto> GetCompanyAsync(Guid companyId, System.Security.Claims.ClaimsPrincipal user, bool trackChanges)
+        {
+            if (!user.IsInRole("Administrator"))
+            {
+                var userCompanyIdClaim = user.FindFirst("CompanyId")?.Value;
+                if (userCompanyIdClaim == null || !Guid.TryParse(userCompanyIdClaim, out var userCompanyId) || userCompanyId != companyId)
+                {
+                    throw new UnauthorizedAccessException("You do not have access to this company's data.");
+                }
+            }
+
             var company = await GetCompanyAndCheckIfItExistsAsync(companyId, trackChanges);
 
             var companyDto = _mapper.Map<CompanyDto>(company);
